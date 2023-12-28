@@ -132,7 +132,7 @@ document.addEventListener('keyup', (e) => {
 })
 
 document.addEventListener('click', (e) => {
-    const angle = Math.atan2(e.clientY - player.y, e.clientX - player.x)
+    const angle = Math.atan2(e.clientY - player.y - (player.size / 2), e.clientX - player.x - (player.size / 2))
 
     const velocity = {
         x: Math.cos(angle),
