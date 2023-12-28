@@ -56,6 +56,29 @@ class PowerUp {
 
 }
 
+class Projectile {
+    constructor(x, y, size, color, velocity) {
+        this.x = x
+        this.y = y
+        this.size = size
+        this.color = color
+        this.velocity = velocity
+    }
+
+    draw() {
+        ctx.beginPath()
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false)
+        ctx.fillStyle = this.color
+        ctx.fill()
+    }
+
+    update() {
+        this.draw()
+        this.x += this.velocity.x
+        this.y += this.velocity.y
+    }
+}
+
 function colisionCheck(player, powerUp) {
     return !powerUp.collected &&
         player.x < powerUp.x + powerUp.size &&
@@ -76,12 +99,18 @@ function updateGame() {
     }
 }
 
+const projectiles = []
+
 function animate() {
     requestAnimationFrame(animate)
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     player.update()
     speedBoost.draw()
     updateGame()
+
+    projectiles.forEach((projectile) => {
+        projectile.update()
+    })
 }
 
 document.addEventListener('keydown', (e) => {
@@ -102,9 +131,26 @@ document.addEventListener('keyup', (e) => {
     }
 })
 
+document.addEventListener('click', (e) => {
+    const angle = Math.atan2(e.clientY - player.y, e.clientX - player.x)
+
+    const velocity = {
+        x: Math.cos(angle),
+        y: Math.sin(angle)
+    }
+
+    projectiles.push(new Projectile(player.x + (player.size / 2), player.y + (player.size / 2),
+        2, 'red', {
+        x: velocity.x * 3,
+        y: velocity.y * 3
+    }))
+})
+
 
 const player = new Player(200, 200, 20, 'black')
 const speedBoost = new PowerUp(500, 500, 10, 'red')
+
+
 
 
 animate()
