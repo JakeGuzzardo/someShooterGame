@@ -79,12 +79,36 @@ class Projectile {
     }
 }
 
+class Wall {
+    constructor(x, y, width, height) {
+        this.x = x
+        this.y = y
+        this.width = width
+        this.height = height
+    }
+
+    draw() {
+        ctx.beginPath()
+        ctx.fillStyle = 'black'
+        ctx.fillRect(this.x, this.y, this.width, this.height)
+    }
+
+
+}
+
 function colisionCheck(player, powerUp) {
     return !powerUp.collected &&
         player.x < powerUp.x + powerUp.size &&
         player.x + player.size > powerUp.x &&
         player.y < powerUp.y + powerUp.size &&
         player.y + player.size > powerUp.y
+}
+
+function wallCheck(player, wall) {
+    return player.x < wall.x + wall.width &&
+        player.x + player.size > wall.x &&
+        player.y < wall.y + wall.height &&
+        player.y + player.size > wall.y
 }
 
 function updateGame() {
@@ -97,6 +121,52 @@ function updateGame() {
         }, 5000)
 
     }
+
+    walls.forEach(wall => {
+        if (wallCheck(player, wall)) {
+            // Detects player colision with walls
+            const overlapLeft = (player.x + player.size) - wall.x;
+            const overlapRight = (wall.x + wall.width) - player.x;
+            const overlapTop = (player.y + player.size) - wall.y;
+            const overlapBottom = (wall.y + wall.height) - player.y;
+
+            // Find the minimum overlap
+            const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+
+            // Adjust the player's position based on the minimum overlap
+            if (minOverlap == overlapLeft) {
+                player.x = wall.x - player.size;
+            } else if (minOverlap == overlapRight) {
+                player.x = wall.x + wall.width;
+            } else if (minOverlap == overlapTop) {
+                player.y = wall.y - player.size;
+            } else if (minOverlap == overlapBottom) {
+                player.y = wall.y + wall.height;
+            }
+        }
+    })
+
+    // if (wallCheck(player, wall_1)) {
+    //     const overlapLeft = (player.x + player.size) - wall_1.x;
+    //     const overlapRight = (wall_1.x + wall_1.width) - player.x;
+    //     const overlapTop = (player.y + player.size) - wall_1.y;
+    //     const overlapBottom = (wall_1.y + wall_1.height) - player.y;
+
+    //     // Find the minimum overlap
+    //     const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+
+    //     // Adjust the player's position based on the minimum overlap
+    //     if (minOverlap == overlapLeft) {
+    //         player.x = wall_1.x - player.size;
+    //     } else if (minOverlap == overlapRight) {
+    //         player.x = wall_1.x + wall_1.width;
+    //     } else if (minOverlap == overlapTop) {
+    //         player.y = wall_1.y - player.size;
+    //     } else if (minOverlap == overlapBottom) {
+    //         player.y = wall_1.y + wall_1.height;
+    //     }
+
+    // }
 }
 
 const projectiles = []
@@ -106,10 +176,17 @@ function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     player.update()
     speedBoost.draw()
+    wall.draw()
     updateGame()
 
-    projectiles.forEach((projectile) => {
+    projectiles.forEach((projectile, index) => {
         projectile.update()
+        walls.forEach(wall => {
+            if (wallCheck(projectile, wall)) {
+                //projectiles.splice(index, 1)
+                projectile.velocity.x = -projectile.velocity.x
+            }
+        })
     })
 }
 
@@ -140,15 +217,19 @@ document.addEventListener('click', (e) => {
     }
 
     projectiles.push(new Projectile(player.x + (player.size / 2), player.y + (player.size / 2),
-        2, 'red', {
-        x: velocity.x * 3,
-        y: velocity.y * 3
+        4, 'red', {
+        x: velocity.x * 10,
+        y: velocity.y * 10
     }))
 })
 
 
 const player = new Player(200, 200, 20, 'black')
 const speedBoost = new PowerUp(500, 500, 10, 'red')
+const centerWallSize = 600
+const walls = []
+const wall = new Wall(canvas.width / 2, (canvas.height / 2) - (centerWallSize / 2), 10, centerWallSize)
+walls.push(wall)
 
 
 
